@@ -641,7 +641,7 @@ jQuery(document).ready(function($) {
 			function() {
 
 				// scroll to new comment
-				jQuery('#comments_sidebar div.sidebar_minimiser').scrollTo(
+				jQuery('#comments_sidebar .sidebar_contents_wrapper').scrollTo(
 					comment, 
 					{
 						duration: cp_scroll_speed, 
