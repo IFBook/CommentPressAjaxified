@@ -4,7 +4,7 @@
 Plugin Name: Commentpress Ajaxified
 Version: 1.0
 Plugin URI: http://www.futureofthebook.org/commentpress/
-Description: This plugin allow comments to be posted without leaving or refreshing the page as well as a number of other enhancements. <strong>Please note:</strong> this plugin only works with the official Commentpress theme. <strong>For Wordpress MU:</strong> only activate this plugin sitewide if you have activated Commentpress sitewide.
+Description: This plugin allows comments to be posted without leaving or refreshing the page as well as a number of other enhancements. <strong>Please note:</strong> this plugin only works with the official Commentpress theme. <strong>For Wordpress Multisite:</strong> do not network activate this plugin. For more information see the Commentpress Plugin docs.
 Author: Institute for the Future of the Book
 Author URI: http://www.futureofthebook.org
 */
@@ -72,45 +72,24 @@ function cpac_deactivate() {
  */
 function cpac_enable_plugin() {
 
-	// init return
-	$allowed = true;
-	
 	// access globals
-	global $post, $commentpress_obj;
-	
-	
+	global $commentpress_obj;
 	
 	// kick out if...
 	
 	// cp is not enabled
-	if ( !is_object( $commentpress_obj ) )  { return; }
+	if ( is_null( $commentpress_obj ) OR !is_object( $commentpress_obj ) )  { return; }
 	
 	// we're in the WP back end
 	if ( is_admin() ) { return; }
 		
-	// it's the Theme My Login page
-	if ( $commentpress_obj->is_theme_my_login_page() ) { return; }
 	
 	
-	
-	// disallow generally if page doesn't have a comments sidebar
-	if ( $commentpress_obj->get_default_sidebar() != 'comments' )  { $allowed = false; }
-	
-	// but, allow general comments page
-	if ( $commentpress_obj->db->option_get( 'cp_general_comments_page' ) == $post->ID ) { $allowed = true; }
-	
-	
+	// add localised text
+	add_action('wp_head', 'cpac_localise');
 
-	// well?
-	if ( $allowed ) {
-	
-		// add localised text
-		add_action('wp_head', 'cpac_localise');
-	
-		// add our javascripts
-		add_action('wp_print_scripts', 'cpac_add_javascripts', 20);
-	
-	}
+	// add our javascripts
+	add_action('wp_enqueue_scripts', 'cpac_add_javascripts', 20);
 	
 }
 
@@ -294,9 +273,12 @@ function cpac_get_comment_depth( $comment, $depth ) {
 function cpac_add_javascripts() {
 	
 	// access globals
-	global $post, $withcomments, $commentpress_obj;
+	global $post, $commentpress_obj;
 	
+	// can only now see $post
+	if ( !cpac_plugin_can_activate() ) { return; }
 
+	
 
 	// init vars
 	$vars = array();
@@ -308,7 +290,7 @@ function cpac_add_javascripts() {
 	$cpac_url = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__));
 	
 	// we need to know the url of the Ajax handler
-	$_ajax_url = get_option('siteurl').'/wp-admin/admin-ajax.php';
+	$_ajax_url = admin_url( 'admin-ajax.php' );
 	
 	// prepare to pass
 	$vars['cpac_ajax_url'] = $_ajax_url;
@@ -331,16 +313,31 @@ function cpac_add_javascripts() {
 	// add post ID
 	$vars['cpac_post_id'] = $post->ID;
 	
+	
+	
+	// default to minified scripts
+	$debug_state = '';
+
+	// target different scripts when debugging
+	if ( defined( 'SCRIPT_DEBUG' ) AND SCRIPT_DEBUG === true ) {
+	
+		// use uncompressed scripts
+		$debug_state = '.dev';
+	
+	}
+	
+	
+	
 	// are we asking for in-page comments?
 	if ( $commentpress_obj->db->is_special_page() ) {
 	
 		// add comments in page script
-		wp_enqueue_script('cpac', $cpac_url.'cp-ajax-comments-page.js');
+		wp_enqueue_script('cpac', $cpac_url.'cp-ajax-comments-page'.$debug_state.'.js');
 	
 	} else {
 	
 		// add comments in sidebar script
-		wp_enqueue_script('cpac', $cpac_url.'cp-ajax-comments.js');
+		wp_enqueue_script('cpac', $cpac_url.'cp-ajax-comments'.$debug_state.'.js');
 	
 	}
 	
@@ -360,6 +357,9 @@ function cpac_add_javascripts() {
  *
  */
 function cpac_localise() {
+	
+	// can only now see $post
+	if ( !cpac_plugin_can_activate() ) { return; }
 	
 	// load translations
 	load_plugin_textdomain('cpac');
@@ -397,6 +397,39 @@ function cpac_plugin_action_links( $links, $file ) {
 }
 
 add_filter( 'plugin_action_links', 'cpac_plugin_action_links', 10, 2 );
+
+
+
+
+/** 
+ * @description: validate that the plugin can be activated
+ * @todo: 
+ *
+ */
+function cpac_plugin_can_activate() {
+
+	// access globals
+	global $post, $commentpress_obj;
+	
+	// disallow if no post ID (such as 404)
+	if ( !is_object( $post ) )  { return false; }
+	
+	// it's the Theme My Login page
+	if ( $commentpress_obj->is_theme_my_login_page() ) { return false; }
+	
+	// init
+	$allowed = true;
+	
+	// disallow generally if page doesn't have a comments sidebar
+	if ( $commentpress_obj->get_default_sidebar() != 'comments' )  { $allowed = false; }
+	
+	// but, allow general comments page
+	if ( $commentpress_obj->db->option_get( 'cp_general_comments_page' ) == $post->ID ) { $allowed = true; }
+	
+	// --<
+	return $allowed;
+	
+}
 
 
 
