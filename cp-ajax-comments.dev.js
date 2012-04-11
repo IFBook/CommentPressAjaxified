@@ -583,6 +583,10 @@ jQuery(document).ready(function($) {
 	 */
 	function cpac_nice_append( response, content, target, last ) {
 	
+		// test for undefined, which may happen on replies to comments
+		// which have lost their original context
+		if ( response === undefined || response === null ) { return; }
+	
 		response.find(content)
 				.hide()
 				.appendTo(target);
@@ -603,6 +607,10 @@ jQuery(document).ready(function($) {
 	 *
 	 */
 	function cpac_nice_prepend( response, content, target, last ) {
+	
+		// test for undefined, which may happen on replies to comments
+		// which have lost their original context
+		if ( response === undefined || response === null ) { return; }
 	
 		response.find(content)
 				.hide()
@@ -829,6 +837,7 @@ jQuery(document).ready(function($) {
 				
 					// get our data as object
 					var response = jQuery(data);
+					//console.log( data );
 					
 					// add comment
 					cpac_add_comment( response );

@@ -78,7 +78,7 @@ function cpac_enable_plugin() {
 	// kick out if...
 	
 	// cp is not enabled
-	if ( !is_object( $commentpress_obj ) )  { return; }
+	if ( is_null( $commentpress_obj ) OR !is_object( $commentpress_obj ) )  { return; }
 	
 	// we're in the WP back end
 	if ( is_admin() ) { return; }
@@ -89,7 +89,7 @@ function cpac_enable_plugin() {
 	add_action('wp_head', 'cpac_localise');
 
 	// add our javascripts
-	add_action('wp_print_scripts', 'cpac_add_javascripts', 20);
+	add_action('wp_enqueue_scripts', 'cpac_add_javascripts', 20);
 	
 }
 
@@ -319,7 +319,7 @@ function cpac_add_javascripts() {
 	$debug_state = '';
 
 	// target different scripts when debugging
-	if ( defined( 'WP_DEBUG' ) AND WP_DEBUG === true ) {
+	if ( defined( 'SCRIPT_DEBUG' ) AND SCRIPT_DEBUG === true ) {
 	
 		// use uncompressed scripts
 		$debug_state = '.dev';
