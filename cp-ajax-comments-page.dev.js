@@ -76,7 +76,7 @@ jQuery(document).ready(function($) {
 			
 		);
 		jQuery('#commentform').after(
-			'<img src="' + cpac_path + 'loading.gif" id="loading" alt="' + cpac_lang[0] + '" />'
+			'<img src="' + cpac_spinner_url + '" id="loading" alt="' + cpac_lang[0] + '" />'
 		);
 		jQuery('#loading').hide();
 		form = jQuery('#commentform');
