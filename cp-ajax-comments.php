@@ -323,12 +323,12 @@ function cpac_add_javascripts() {
 	if ( $commentpress_obj->db->is_special_page() ) {
 	
 		// add comments in page script
-		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments-page'.$debug_state.'.js', __FILE__ );
+		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments-page'.$debug_state.'.js', __FILE__ ) );
 	
 	} else {
 	
 		// add comments in sidebar script
-		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments'.$debug_state.'.js', __FILE__ );
+		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments'.$debug_state.'.js', __FILE__ ) );
 	
 	}
 	
