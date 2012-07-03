@@ -286,25 +286,16 @@ function cpac_add_javascripts() {
 	// is live commenting enabled?
 	$vars['cpac_live'] = get_option( 'cp_para_comments_live', 0 );
 	
-	// get url
-	$cpac_url = WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__));
-	
 	// we need to know the url of the Ajax handler
-	$_ajax_url = admin_url( 'admin-ajax.php' );
+	$vars['cpac_ajax_url'] = admin_url( 'admin-ajax.php' );
 	
-	// prepare to pass
-	$vars['cpac_ajax_url'] = $_ajax_url;
+	// add the url of the animated loading bar gif
+	$vars['cpac_spinner_url'] = plugins_url( 'loading.gif', __FILE__ );
 	
-	// it's nice to know the url of the Ajax spinner GIF if we need it
-	$_spinner_url = get_option('siteurl').'/wp-admin/images/loading.gif';
-	
-	// prepare to pass
-	$vars['cpac_spinner_url'] = $_spinner_url;
-	
-	// 2009-08-09 14:46:14
+	// time formatted thus: 2009-08-09 14:46:14
 	$vars['cpac_current_time'] = date('Y-m-d H:i:s');
 	
-	// get comment count at the time the page  is served
+	// get comment count at the time the page is served
 	$_count = get_comment_count( $post->ID );
 	
 	// adding moderation queue as well, since we do show these
@@ -332,12 +323,12 @@ function cpac_add_javascripts() {
 	if ( $commentpress_obj->db->is_special_page() ) {
 	
 		// add comments in page script
-		wp_enqueue_script('cpac', $cpac_url.'cp-ajax-comments-page'.$debug_state.'.js');
+		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments-page'.$debug_state.'.js', __FILE__ ) );
 	
 	} else {
 	
 		// add comments in sidebar script
-		wp_enqueue_script('cpac', $cpac_url.'cp-ajax-comments'.$debug_state.'.js');
+		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments'.$debug_state.'.js', __FILE__ ) );
 	
 	}
 	
@@ -373,7 +364,6 @@ function cpac_localise() {
 					'".__('Please enter your comment.', 'cpac')."',
 					'".__('Your comment has been added.', 'cpac')."',
 					'".__('AJAX error!', 'cpac')."'];
-	var cpac_path = '".WP_PLUGIN_URL.'/'.str_replace(basename( __FILE__),"",plugin_basename(__FILE__))."';
 	</script>";
 	
 }
