@@ -1,4 +1,4 @@
-=== Commentpress for Multisite ===
+=== Commentpress AJAX Comments ===
 Contributors: Christian Wach
 Tags: commentpress,multisite,blogs,content
 Requires at least: WP 3.3
