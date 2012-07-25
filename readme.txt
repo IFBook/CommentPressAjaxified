@@ -32,6 +32,9 @@ TBA
 
 == Changelog == 
 
+= 1.0.2 =
+* Now allows lists in comments
+
 = 1.0.1 =
 * Now works under https conditions
 
