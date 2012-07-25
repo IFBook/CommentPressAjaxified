@@ -3,14 +3,14 @@
 CommentPress AJAX Comment Submission
 ===============================================================
 AUTHOR			: Christian Wach <needle@haystack.co.uk>
-LAST MODIFIED	: 16/09/2010
+LAST MODIFIED	: 25/07/2012
 DEPENDENCIES	: jquery.js
 ---------------------------------------------------------------
 NOTES
 
 This script enables AJAX comment posting when the CommentPress theme is active.
 
-Based on the 'Ajax Comment Posting' WordPress plugin (version 2.0)
+Based loosely on the 'Ajax Comment Posting' WordPress plugin (version 2.0)
 
 ---------------------------------------------------------------
 */
@@ -493,9 +493,9 @@ jQuery(document).ready(function($) {
 			
 				cpac_nice_append(
 					response,
-					parent_id + ' > ol.children:first li:last', 
+					parent_id + ' > ol.children:first > li:last', 
 					child_list, 
-					parent_id + ' > ol.children:first li:last'
+					parent_id + ' > ol.children:first > li:last'
 				);
 				
 			} else {
@@ -504,7 +504,7 @@ jQuery(document).ready(function($) {
 					response, 
 					parent_id + ' > ol.children:first', 
 					parent_id,
-					parent_id + ' > ol.children:first li:last'
+					parent_id + ' > ol.children:first > li:last'
 				);
 				
 			}
@@ -520,9 +520,9 @@ jQuery(document).ready(function($) {
 			
 				cpac_nice_append(
 					response,
-					para_id + ' > ol.commentlist:first li:last',
+					para_id + ' > ol.commentlist:first > li:last',
 					comm_list,
-					para_id + ' > ol.commentlist:first li:last'
+					para_id + ' > ol.commentlist:first > li:last'
 				);
 				
 			} else {
@@ -531,7 +531,7 @@ jQuery(document).ready(function($) {
 					response,
 					para_id + ' > ol.commentlist:first',
 					para_id,
-					para_id + ' > ol.commentlist:first li:last'
+					para_id + ' > ol.commentlist:first > li:last'
 				);
 
 			}
