@@ -3,7 +3,7 @@
 CommentPress AJAX Comment Submission (in page)
 ===============================================================
 AUTHOR			: Christian Wach <needle@haystack.co.uk>
-LAST MODIFIED	: 16/09/2010
+LAST MODIFIED	: 25/07/2012
 DEPENDENCIES	: jquery.js
 ---------------------------------------------------------------
 NOTES
@@ -140,9 +140,9 @@ jQuery(document).ready(function($) {
 			
 				cpac_nice_append(
 					response,
-					parent_id + ' .children:first li:last', 
+					parent_id + ' .children:first > li:last', 
 					child_list, 
-					parent_id + ' .children:first li:last'
+					parent_id + ' .children:first > li:last'
 				);
 				
 			} else {
@@ -151,7 +151,7 @@ jQuery(document).ready(function($) {
 					response, 
 					parent_id + ' .children:first', 
 					parent_id,
-					parent_id + ' .children:first li:last'
+					parent_id + ' .children:first > li:last'
 				);
 				
 			}
@@ -164,9 +164,9 @@ jQuery(document).ready(function($) {
 			
 				cpac_nice_append(
 					response,
-					'ol.commentlist:first li:last',
+					'ol.commentlist:first > li:last',
 					comm_list,
-					'ol.commentlist:first li:last'
+					'ol.commentlist:first > li:last'
 				);
 				
 			} else {
@@ -175,7 +175,7 @@ jQuery(document).ready(function($) {
 					response,
 					'ol.commentlist:first',
 					'div.comments_container',
-					'ol.commentlist:first li:last'
+					'ol.commentlist:first > li:last'
 				);
 
 			}
@@ -201,7 +201,7 @@ jQuery(document).ready(function($) {
 	
 	
 	
-
+	
 	
 	/** 
 	 * @description: do comment append
@@ -209,6 +209,10 @@ jQuery(document).ready(function($) {
 	 *
 	 */
 	function cpac_nice_append( response, content, target, last ) {
+	
+		// test for undefined, which may happen on replies to comments
+		// which have lost their original context
+		if ( response === undefined || response === null ) { return; }
 	
 		response.find(content)
 				.hide()
@@ -231,10 +235,14 @@ jQuery(document).ready(function($) {
 	 */
 	function cpac_nice_prepend( response, content, target, last ) {
 	
+		// test for undefined, which may happen on replies to comments
+		// which have lost their original context
+		if ( response === undefined || response === null ) { return; }
+	
 		response.find(content)
 				.hide()
 				.prependTo(target);
-				
+		
 		// clean up
 		cpac_cleanup( content, last );
 		
@@ -254,7 +262,7 @@ jQuery(document).ready(function($) {
 	
 		// get the id of the last list item
 		var last_id = jQuery(last).attr('id');
-
+	
 		// construct new comment id
 		var new_comm_id = '#comment-' + last_id.split('-')[2];
 		var comment = jQuery(new_comm_id);
@@ -405,6 +413,7 @@ jQuery(document).ready(function($) {
 				
 					// get our data as object
 					var response = jQuery(data);
+					//console.log( data );
 					
 					// add comment
 					cpac_add_comment( response );
