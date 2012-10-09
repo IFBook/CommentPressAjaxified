@@ -313,7 +313,7 @@ jQuery(document).ready(function($) {
 	 * @todo: 
 	 *
 	 */
-	jQuery('#commentform').live('submit', function(evt) {
+	jQuery('#commentform').on('submit', function(evt) {
 	
 		// set global flag
 		cpac_submitting = true;
