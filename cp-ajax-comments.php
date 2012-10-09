@@ -410,8 +410,8 @@ function cpac_plugin_can_activate() {
 	// init
 	$allowed = true;
 	
-	// disallow generally if page doesn't have a comments sidebar
-	if ( $commentpress_obj->get_default_sidebar() != 'comments' )  { $allowed = false; }
+	// disallow generally if page doesn't allow commenting
+	if ( !$commentpress_obj->is_commentable() )  { $allowed = false; }
 	
 	// but, allow general comments page
 	if ( $commentpress_obj->db->option_get( 'cp_general_comments_page' ) == $post->ID ) { $allowed = true; }
