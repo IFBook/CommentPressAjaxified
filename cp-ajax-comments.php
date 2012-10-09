@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Commentpress Ajaxified
-Version: 1.0.2
+Version: 1.0.3
 Plugin URI: http://www.futureofthebook.org/commentpress/
 Description: This plugin allows comments to be posted without leaving or refreshing the page as well as a number of other enhancements. <strong>Please note:</strong> this plugin only works with the official Commentpress theme. <strong>For Wordpress Multisite:</strong> do not network activate this plugin. For more information see the Commentpress Plugin docs.
 Author: Institute for the Future of the Book

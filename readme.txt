@@ -32,6 +32,9 @@ TBA
 
 == Changelog == 
 
+= 1.0.3 =
+* Now works correctly with default sidebars other than comments
+
 = 1.0.2 =
 * Now allows lists in comments
 
