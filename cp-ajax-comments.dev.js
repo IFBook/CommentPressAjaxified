@@ -479,6 +479,9 @@ jQuery(document).ready(function($) {
 		var para_id = '#para_wrapper-' + text_sig;
 		var head_id = '#para_heading-' + text_sig;
 		
+		// we no longer have zero comments
+		jQuery(para_id).removeClass('no_comments');
+		
 		// if the comment is a reply, append the comment to the children
 		if ( comm_parent != '0' ) {
 			
