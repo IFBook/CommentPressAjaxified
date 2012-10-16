@@ -30,6 +30,9 @@ add_action( 'wp_ajax_nopriv_cpac_get_new_comments', 'cpac_get_new_comments' );
 // remove comment flood filter if you want more 'chat-like' functionality
 //remove_filter('comment_flood_filter', 'wp_throttle_comment_flood', 10, 3);
 
+// add AJAX reassign functionality
+add_action( 'wp_ajax_cpac_reassign_comment', 'cpac_reassign_comment' );
+add_action( 'wp_ajax_nopriv_cpac_reassign_comment', 'cpac_reassign_comment' );
 
 
 
@@ -90,6 +93,9 @@ function cpac_enable_plugin() {
 
 	// add our javascripts
 	add_action('wp_enqueue_scripts', 'cpac_add_javascripts', 20);
+	
+	// add a button to the comment meta
+	add_filter('cp_comment_edit_link', 'cpac_add_reassign_button', 20, 2);
 	
 }
 
@@ -277,9 +283,9 @@ function cpac_add_javascripts() {
 	
 	// can only now see $post
 	if ( !cpac_plugin_can_activate() ) { return; }
-
 	
-
+	
+	
 	// init vars
 	$vars = array();
 
@@ -323,12 +329,28 @@ function cpac_add_javascripts() {
 	if ( $commentpress_obj->db->is_special_page() ) {
 	
 		// add comments in page script
-		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments-page'.$debug_state.'.js', __FILE__ ) );
+		wp_enqueue_script( 
+			
+			'cpac', 
+			plugins_url( 'cp-ajax-comments-page'.$debug_state.'.js', __FILE__ ) 
+			
+		);
 	
 	} else {
 	
 		// add comments in sidebar script
-		wp_enqueue_script( 'cpac', plugins_url( 'cp-ajax-comments'.$debug_state.'.js', __FILE__ ) );
+		wp_enqueue_script( 
+			
+			'cpac', 
+			plugins_url( 'cp-ajax-comments'.$debug_state.'.js', __FILE__ ),
+			
+			// load in droppable
+			array( 'jquery-ui-droppable', 'jquery-ui-dialog' )
+			
+		);
+		
+		// add WordPress dialog CSS
+		wp_enqueue_style( 'wp-jquery-ui-dialog' );
 	
 	}
 	
@@ -353,18 +375,47 @@ function cpac_localise() {
 	if ( !cpac_plugin_can_activate() ) { return; }
 	
 	// load translations
-	load_plugin_textdomain('cpac');
+	load_plugin_textdomain(
+	
+		// unique name
+		'cpac', 
+		
+		// deprecated argument
+		false,
+		
+		// path to directory containing translation files
+		plugin_dir_path( CP_PLUGIN_FILE ) . 'languages/'
+
+	);
+	
+	// init array
+	$text = array();
+	
+	// add translations for comment form
+	$text[] = __( 'Loading...', 'cpac' );
+	$text[] = __( 'Please enter your name.', 'cpac' );
+	$text[] = __( 'Please enter your email address.', 'cpac' );
+	$text[] = __( 'Please enter a valid email address.', 'cpac' );
+	$text[] = __( 'Please enter your comment.', 'cpac' );
+	$text[] = __( 'Your comment has been added.', 'cpac' );
+	$text[] = __( 'AJAX error!', 'cpac' );
+	
+	// add translations for comment reassignment
+	$text[] = __( 'Are you sure?', 'cpac' );
+	$text[] = __( 'Are you sure you want to assign the comment and its replies to the textblock? This action cannot be undone.', 'cpac' );
+	$text[] = __( 'Submitting...', 'cpac' );
+	$text[] = __( 'Please wait while the comments are reassigned. The page will refresh when this has been done.', 'cpac' );
+	
+	// wrap each item in single quotes
+	array_walk( $text, create_function( '&$val', '$val = "\'".$val."\'";' ) );
+	
+	// construct array
+	$array = implode( ', ', $text );
 	
 	// add to head
-	echo "<script type='text/javascript'>
-	var cpac_lang = ['".__('Loading...', 'cpac')."',
-					'".__('Please enter your name.', 'cpac')."',
-					'".__('Please enter your email address.', 'cpac')."',
-					'".__('Please enter a valid email address.', 'cpac')."',
-					'".__('Please enter your comment.', 'cpac')."',
-					'".__('Your comment has been added.', 'cpac')."',
-					'".__('AJAX error!', 'cpac')."'];
-	</script>";
+	echo '<script type="text/javascript">
+	var cpac_lang = ['.$array.'];
+	</script>';
 	
 }
 
@@ -424,4 +475,178 @@ function cpac_plugin_can_activate() {
 
 
 
-?>
+
+/** 
+ * @description: get comment depth
+ * @todo: 
+ *
+ */
+function cpac_add_reassign_button( $edit_button, $comment ) {
+
+	//print_r( $comment ); die();
+	
+	// pass if not top level
+	if ( $comment->comment_parent != '0' ) { return $edit_button; }
+	
+	// pass if not orphan
+	//if ( !isset( $comment->orphan ) ) { return $edit_button; }
+	
+	// set default edit link title text
+	$_title_text = apply_filters( 
+		'cpac_comment_assign_link_title_text', 
+		__( 'Drop on to a text-block to reassign this comment (and any replies) to it', 'cpac' )
+	);
+
+	// set default edit link text
+	$_text = apply_filters( 
+		'cp_comment_assign_link_text', 
+		__( 'Reassign', 'cpac' )
+	);
+
+	// construct assign button
+	$assign_button = '<span class="alignright comment-assign" title="'.$_title_text.'" id="cpac_assign-'.$comment->comment_ID.'">'.
+						$_text.
+					 '</span>';
+	
+	// add our assign button
+	$edit_button .= $assign_button;
+	
+	
+	
+	// --<
+	return $edit_button;
+
+}
+
+
+
+
+
+
+/** 
+ * @description: change a comment's text-signature
+ * @todo: 
+ *
+ */
+function cpac_reassign_comment() {
+
+	global $data;
+	
+	// init return
+	$data = array();
+	$data['msg'] = '';
+	
+	// init checker
+	$comment_ids = array();
+	
+	// get incoming data
+	$text_sig = isset( $_POST[ 'text_signature' ] ) ? $_POST[ 'text_signature' ] : '';
+	$comment_id = isset( $_POST[ 'comment_id' ] ) ? $_POST[ 'comment_id' ] : '';
+	
+	// sanity check
+	if ( $text_sig !== '' AND $comment_id !== '' ) {
+	
+		// access globals
+		global $commentpress_obj;
+		
+		// store text signature
+		$commentpress_obj->db->save_comment_signature( $comment_id );
+		
+		// trace
+		$comment_ids[] = $comment_id;
+		
+		// recurse for any comment children
+		cpac_reassign_comment_children( $comment_id, $text_sig, $comment_ids );
+				
+	}
+	
+	// add message
+	$data['msg'] .= 'comments '.implode( ', ', $comment_ids ).' updated'."\n";
+
+	// set reasonable headers
+	header('Content-type: text/plain'); 
+	header("Cache-Control: no-cache");
+	header("Expires: -1");
+
+	// echo
+	echo json_encode( $data );
+	
+	// die!
+	exit();
+	
+}
+
+
+
+
+
+
+/** 
+ * @description: store text signature for all children of a comment
+ * @todo: 
+ *
+ */
+function cpac_reassign_comment_children( $comment_id, $text_sig, &$comment_ids ) {
+
+	// get the children of the comment
+	$children = cpac_get_children( $comment_id );
+	
+	// did we get any
+	if ( count( $children ) > 0 ) {
+	
+		// loop
+		foreach( $children AS $child ) {
+	
+			// access globals
+			global $commentpress_obj;
+			
+			// store text signature
+			$commentpress_obj->db->save_comment_signature( $child->comment_ID );
+			
+			// trace
+			$comment_ids[] = $child->comment_ID;
+			
+			// recurse for any comment children
+			cpac_reassign_comment_children( $child->comment_ID, $text_sig, $comment_ids );
+			
+		}
+		
+	}
+
+}
+
+
+
+
+
+/** 
+ * @description: retrieve comment children
+ * @todo: 
+ *
+ */
+function cpac_get_children( 
+
+	$comment_id
+	
+) { //-->
+
+	// declare access to globals
+	global $wpdb;
+
+	// construct query for comment children
+	$query = "
+	SELECT *
+	FROM $wpdb->comments
+	WHERE comment_parent = '$comment_id' 
+	ORDER BY comment_date ASC
+	";
+	
+	// --<
+	return $wpdb->get_results( $query );
+
+}
+
+
+
+
+
