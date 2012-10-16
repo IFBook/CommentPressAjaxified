@@ -2,7 +2,7 @@
 Contributors: Christian Wach
 Tags: commentpress,multisite,blogs,content
 Requires at least: WP 3.3
-Tested up to: WP 3.4.1
+Tested up to: WP 3.4.2
 
 Commentpress AJAX Comments is a WordPress plugin that enhances commenting in Commentpress.
 
@@ -31,6 +31,9 @@ TBA
 TBA
 
 == Changelog == 
+
+= 1.1 =
+* Comments can be reassigned to different text-blocks. Useful for reconnecting orphaned comments to page content.
 
 = 1.0.3 =
 * Now works correctly with default sidebars other than comments

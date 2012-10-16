@@ -360,6 +360,145 @@ function cpac_ajax_updater( toggle ) {
 
 
 /** 
+ * @description: reassign a comment
+ *
+ */
+function cpac_reassign( text_sig, ui ) {
+
+	// get comment id
+	var comment_id = jQuery( ui.draggable ).attr('id').split('-')[1];
+
+	// let's see what params we've got
+	//console.log( 'text_sig: ' + text_sig );
+	//console.log( 'comment id: ' + comment_id );
+	
+	// get comment parent li
+	var comment_item = jQuery( ui.draggable ).closest( 'li.comment' );
+	
+	// assign as comment to move
+	var comment_to_move = comment_item;
+		
+	// get siblings
+	var other_comments = comment_item.siblings( 'li.comment' );
+	
+	// are there any?
+	if ( other_comments.length == 0 ) {
+	
+		// get comment list, because we need to remove the entire list
+		var comment_list = comment_item.parent( 'ol.commentlist' );
+		
+		// overwrite comment to move
+		comment_to_move = comment_list;
+		
+	}
+	
+	// slide our comment up
+	jQuery( comment_to_move ).slideUp( 'slow',
+	
+		// animation complete
+		function() {
+			
+			/*
+			// find target paragraph wrapper
+			var para_wrapper = jQuery( '#para_wrapper-' + text_sig );
+			
+			// get nested commentlist
+			var target_list = para_wrapper.children( 'ol.commentlist' );
+			
+			// does it already have a commentlist?
+			if ( target_list.length > 0 ) {
+				
+				// yes, append just the comment item to the list
+				comment_item.appendTo( target_list )
+							.css( 'display', 'block' )
+							.parent()
+							.css( 'display', 'block' );
+				
+			} else {
+				
+				// no, we must prepend the list, wrapping the item in one if necessary
+	
+				// do we have the list defined?
+				if ( other_comments.length > 0 ) {
+					
+					// no, wrap item in list, then prepend
+					comment_item.wrap( '<ol class="commentlist" />' )
+								.css( 'display', 'block' )
+								.parent()
+								.css( 'display', 'block' )
+								.prependTo( para_wrapper );
+					
+				} else {
+				
+					//  prepend list
+					comment_item.css( 'display', 'block' )
+								.parent()
+								.css( 'display', 'block' )
+								.prependTo( para_wrapper );
+				
+				}
+				
+				// check
+				//console.log( para_wrapper );
+
+			}
+			*/
+			
+			// use post
+			jQuery.post(
+				
+				// set URL
+				cpac_ajax_url,
+				
+				// set params
+				{ action: 'cpac_reassign_comment',
+				
+				// send text sig
+				text_signature: text_sig,
+				
+				// send post ID
+				comment_id: comment_id
+		
+				 },
+				
+				// callback
+				function( data, textStatus ) { 
+				
+					//alert( data.msg );
+					//alert( textStatus );
+					
+					// if success
+					if ( textStatus == 'success' ) {
+							
+						// refresh from server
+						document.location.reload( true );
+						
+					} else {
+					
+						// show error
+						alert( textStatus );
+						
+					}
+					
+				},
+				
+				// expected format
+				'json'
+		
+			);
+		
+		}
+		
+	);
+	
+}
+
+
+
+
+
+
+/** 
  * @description: define what happens when the page is ready
  * @todo: 
  *
@@ -401,7 +540,7 @@ jQuery(document).ready(function($) {
 		// trigger repeat calls
 		cpac_ajax_updater( true );
 		
-		jQuery(this).text('Javascript Off');
+		jQuery(this).text('Javascript On');
 		
 		return false;
 		
@@ -478,6 +617,9 @@ jQuery(document).ready(function($) {
 		// get useful ids
 		var para_id = '#para_wrapper-' + text_sig;
 		var head_id = '#para_heading-' + text_sig;
+		
+		// we no longer have zero comments
+		jQuery(para_id).removeClass( 'no_comments' );
 		
 		// if the comment is a reply, append the comment to the children
 		if ( comm_parent != '0' ) {
@@ -702,7 +844,7 @@ jQuery(document).ready(function($) {
 		if ( comment_num == '1' ) {
 	
 			// set comment icon
-			jQuery(textblock_id + ' span.commenticonbox a.para_permalink').addClass('has_comments');
+			jQuery(textblock_id + ' span.commenticonbox a.para_permalink').addClass( 'has_comments' );
 		
 			// show it
 			jQuery(small).css( 'visibility', 'visible' );
@@ -869,4 +1011,89 @@ jQuery(document).ready(function($) {
 	
 	
 	
+	/** 
+	 * @description: make comments re-assignable
+	 * @todo: 
+	 *
+	 */
+	// make comment reassign button draggable
+	$( '#comments_sidebar .comment-wrapper .comment-assign' ).draggable({
+		
+		// a copy thereof...
+		helper: 'clone',
+		cursor: 'move'
+	
+	});
+	
+	// make textblocks droppable
+	$( "#content .post .textblock" ).droppable({
+		
+		accept: '.comment-assign',
+		hoverClass: 'selected_para',
+
+		// when the button is dropped
+		drop: function( event, ui ) {
+			
+			// get id of dropped-on item
+			var text_sig = $( this ).attr('id').split('-')[1];
+			
+			// create options for modal dialog
+			var options = {
+				
+				resizable: false,
+				height: 160,
+				zIndex: 3999,
+				modal: true,
+				dialogClass: 'wp-dialog',
+				buttons: {
+					"Yes": function() {
+					
+						// let's do it
+						$( this ).dialog( "option", "disabled", true );
+						
+						// clear buttons
+						$( '.ui-dialog-buttonset' ).html(
+							'<img src="' + cpac_spinner_url + '" id="loading" alt="' + cpac_lang[0] + '" />'
+						);
+						
+						// alert title
+						$( '.ui-dialog-title' ).html( cpac_lang[9] );
+						
+						// show message
+						$( '.cp_alert_text' ).html( cpac_lang[10] );
+						
+						// call function
+						cpac_reassign( text_sig, ui );
+						
+					},
+					"Cancel": function() {
+					
+						// cancel
+						$( this ).dialog( 'close' );
+						$( this ).dialog( 'destroy' );
+						$( this ).remove();
+						
+					}
+				}
+
+			};
+			
+			// define message
+			var alert_text = cpac_lang[8];
+		
+			// create modal dialog
+			var div = $('<div><p class="cp_alert_text">' + alert_text + '</p></div>');
+			div.attr( 'title', cpac_lang[7] )
+			   .appendTo( 'body' )
+			   .dialog( options );
+			
+		}
+	
+	});
+    
+    
+
+
+
+
 }); // end document.ready()
