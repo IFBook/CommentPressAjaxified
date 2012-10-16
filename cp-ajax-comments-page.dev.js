@@ -186,10 +186,10 @@ jQuery(document).ready(function($) {
 		cp_enable_comment_permalink_clicks();
 	
 		// get head
-		var head = response.find('div.comments_container h3');
+		var head = response.find('#comments_in_page_wrapper div.comments_container > h3');
 	
 		// replace heading
-		jQuery('div.comments_container h3').replaceWith(head);
+		jQuery('#comments_in_page_wrapper div.comments_container > h3').replaceWith(head);
 		
 		// clear comment form
 		form.find('#comment').val('');
