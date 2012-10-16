@@ -488,6 +488,9 @@ function cpac_add_reassign_button( $edit_button, $comment ) {
 	// pass if not top level
 	if ( $comment->comment_parent != '0' ) { return $edit_button; }
 	
+	// pass if pingback or trackback
+	if ( $comment->comment_type == 'trackback' OR $comment->comment_type == 'pingback' ) { return $edit_button; }
+	
 	// pass if not orphan
 	//if ( !isset( $comment->orphan ) ) { return $edit_button; }
 	
