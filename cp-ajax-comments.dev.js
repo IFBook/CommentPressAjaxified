@@ -360,6 +360,112 @@ function cpac_ajax_updater( toggle ) {
 
 
 /** 
+ * @description: enable reassignment of comments
+ *
+ */
+function cpac_reassign_comments() {
+
+	// get all draggable items
+	var draggers = jQuery( '#comments_sidebar .comment-wrapper .comment-assign' );
+	
+	// show them
+	draggers.show();
+	
+	// remove draggability for repeated calls
+	draggers.draggable( 'destroy' );
+
+	// make comment reassign button draggable
+	draggers.draggable({
+		
+		// a copy thereof...
+		helper: 'clone',
+		cursor: 'move'
+	
+	});
+	
+
+
+	// get all droppable items
+	var droppers = jQuery( '#content .post .textblock' );
+
+	// remove droppability for repeated calls
+	droppers.droppable( 'destroy' );
+
+	// make textblocks droppable
+	droppers.droppable({
+		
+		// configure droppers
+		accept: '.comment-assign',
+		hoverClass: 'selected_para',
+
+		// when the button is dropped
+		drop: function( event, ui ) {
+			
+			// get id of dropped-on item
+			var text_sig = jQuery( this ).attr('id').split('-')[1];
+			
+			// create options for modal dialog
+			var options = {
+				
+				resizable: false,
+				height: 160,
+				zIndex: 3999,
+				modal: true,
+				dialogClass: 'wp-dialog',
+				buttons: {
+					"Yes": function() {
+					
+						// let's do it
+						jQuery( this ).dialog( "option", "disabled", true );
+						
+						// clear buttons
+						jQuery( '.ui-dialog-buttonset' ).html(
+							'<img src="' + cpac_spinner_url + '" id="loading" alt="' + cpac_lang[0] + '" />'
+						);
+						
+						// alert title
+						jQuery( '.ui-dialog-title' ).html( cpac_lang[9] );
+						
+						// show message
+						jQuery( '.cp_alert_text' ).html( cpac_lang[10] );
+						
+						// call function
+						cpac_reassign( text_sig, ui );
+						
+					},
+					"Cancel": function() {
+					
+						// cancel
+						jQuery( this ).dialog( 'close' );
+						jQuery( this ).dialog( 'destroy' );
+						jQuery( this ).remove();
+						
+					}
+				}
+
+			};
+			
+			// define message
+			var alert_text = cpac_lang[8];
+		
+			// create modal dialog
+			var div = jQuery('<div><p class="cp_alert_text">' + alert_text + '</p></div>');
+			div.attr( 'title', cpac_lang[7] )
+			   .appendTo( 'body' )
+			   .dialog( options );
+			
+		}
+	
+	});
+    
+}
+
+
+
+
+
+
+/** 
  * @description: reassign a comment
  *
  */
@@ -550,6 +656,11 @@ jQuery(document).ready(function($) {
 	
 	
 	
+	// enable comment reassignment
+	cpac_reassign_comments();
+	
+	
+	
 
 
 	/** 
@@ -705,6 +816,7 @@ jQuery(document).ready(function($) {
 		// re-enable clicks
 		cp_enable_comment_permalink_clicks();
 		cp_setup_comment_headers();
+		cpac_reassign_comments();
 		
 		// clear comment form
 		form.find('#comment').val( '' );
@@ -1011,89 +1123,4 @@ jQuery(document).ready(function($) {
 	
 	
 	
-	/** 
-	 * @description: make comments re-assignable
-	 * @todo: 
-	 *
-	 */
-	// make comment reassign button draggable
-	$( '#comments_sidebar .comment-wrapper .comment-assign' ).draggable({
-		
-		// a copy thereof...
-		helper: 'clone',
-		cursor: 'move'
-	
-	});
-	
-	// make textblocks droppable
-	$( "#content .post .textblock" ).droppable({
-		
-		accept: '.comment-assign',
-		hoverClass: 'selected_para',
-
-		// when the button is dropped
-		drop: function( event, ui ) {
-			
-			// get id of dropped-on item
-			var text_sig = $( this ).attr('id').split('-')[1];
-			
-			// create options for modal dialog
-			var options = {
-				
-				resizable: false,
-				height: 160,
-				zIndex: 3999,
-				modal: true,
-				dialogClass: 'wp-dialog',
-				buttons: {
-					"Yes": function() {
-					
-						// let's do it
-						$( this ).dialog( "option", "disabled", true );
-						
-						// clear buttons
-						$( '.ui-dialog-buttonset' ).html(
-							'<img src="' + cpac_spinner_url + '" id="loading" alt="' + cpac_lang[0] + '" />'
-						);
-						
-						// alert title
-						$( '.ui-dialog-title' ).html( cpac_lang[9] );
-						
-						// show message
-						$( '.cp_alert_text' ).html( cpac_lang[10] );
-						
-						// call function
-						cpac_reassign( text_sig, ui );
-						
-					},
-					"Cancel": function() {
-					
-						// cancel
-						$( this ).dialog( 'close' );
-						$( this ).dialog( 'destroy' );
-						$( this ).remove();
-						
-					}
-				}
-
-			};
-			
-			// define message
-			var alert_text = cpac_lang[8];
-		
-			// create modal dialog
-			var div = $('<div><p class="cp_alert_text">' + alert_text + '</p></div>');
-			div.attr( 'title', cpac_lang[7] )
-			   .appendTo( 'body' )
-			   .dialog( options );
-			
-		}
-	
-	});
-    
-    
-
-
-
-
 }); // end document.ready()
