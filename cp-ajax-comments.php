@@ -20,6 +20,9 @@ register_activation_hook( __FILE__, 'cpac_activate' );
 // deactivation
 register_deactivation_hook( __FILE__, 'cpac_deactivate' );
 
+// allow translations
+add_action( 'plugins_loaded', 'cpac_translate' );
+
 // enable the plugin at the appropriate point
 add_action( 'wp', 'cpac_enable_plugin' );
 
@@ -62,6 +65,33 @@ function cpac_deactivate() {
 	
 }
 
+
+
+
+
+
+/** 
+ * @description: delete option
+ * @todo: 
+ *
+ */
+function cpac_translate() {
+
+	// load translations
+	load_plugin_textdomain(
+	
+		// unique name
+		'cpac', 
+		
+		// deprecated argument
+		false,
+		
+		// relative path to directory containing translation files
+		dirname( plugin_basename( __FILE__ ) ) . '/languages/'
+
+	);
+	
+}
 
 
 
@@ -373,20 +403,6 @@ function cpac_localise() {
 	
 	// can only now see $post
 	if ( !cpac_plugin_can_activate() ) { return; }
-	
-	// load translations
-	load_plugin_textdomain(
-	
-		// unique name
-		'cpac', 
-		
-		// deprecated argument
-		false,
-		
-		// path to directory containing translation files
-		plugin_dir_path( CP_PLUGIN_FILE ) . 'languages/'
-
-	);
 	
 	// init array
 	$text = array();
